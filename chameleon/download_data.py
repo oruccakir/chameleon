@@ -86,3 +86,65 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+"""
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+# This software may be used and distributed according to the terms of the Chameleon License Agreement.
+
+import hashlib
+import sys
+from pathlib import Path
+import requests
+
+def download_file(url: str, output_path: Path):
+    print(f"Downloading {output_path}")
+    try:
+        response = requests.get(url, stream=True)
+        response.raise_for_status()  # Raise an error for bad status codes
+        with open(output_path, 'wb') as out_file:
+            for chunk in response.iter_content(chunk_size=8192):
+                out_file.write(chunk)
+    except requests.exceptions.RequestException as e:
+        print(f"Failed to download {url}: {e}")
+        sys.exit(1)
+
+def validate_checksum(folder: Path):
+    chks_parts = (folder / "checklist.chk").read_text().split()
+    for expected_checksum, file in zip(chks_parts[::2], chks_parts[1::2]):
+        file_path = folder / file
+        checksum = hashlib.md5(file_path.read_bytes()).hexdigest()
+        if checksum != expected_checksum:
+            print(f"Checksum mismatch for {file_path}")
+            sys.exit(1)
+
+def download_tokenizer(presigned_url: str, target_folder: Path):
+    tokenizer_folder = target_folder / "tokenizer"
+    tokenizer_folder.mkdir(parents=True, exist_ok=True)
+
+    for filename in [
+        "text_tokenizer.json",
+        "vqgan.ckpt",
+        "vqgan.yaml",
+        "checklist.chk",
+    ]:
+        download_file(
+            presigned_url.replace("*", f"tokenizer/{filename}"),
+            tokenizer_folder / filename,
+        )
+
+    validate_checksum(tokenizer_folder)
+
+def main():
+    presigned_url = (
+        sys.argv[1] if len(sys.argv) > 1 else input("Enter the URL from email: ")
+    )
+
+    target_folder = Path("./data")
+    target_folder.mkdir(parents=True, exist_ok=True)
+
+    download_tokenizer(presigned_url, target_folder)
+
+if __name__ == "__main__":
+    main()
+"""

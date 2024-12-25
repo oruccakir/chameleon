@@ -19,6 +19,7 @@
     "@carbon/icons-react": "^11.25.0",
     "@lexical/react": "^0.12.2",
     "axios": "^1.4.0",
+    "chameleon-frontend": "file:",
     "lexical": "^0.12.2",
     "prettier": "^3.0.3",
     "react": "^18.2.0",
